@@ -28,14 +28,14 @@ Use this as issue-ready execution slices.
 - [x] Generate SHA256SUMS
 - [x] Generate release-manifest.json with schema major + registry hash
 - [x] Publish release assets
-- [ ] Add post-release smoke check action (download + verify one binary)
+- [x] Add post-release smoke check action (download + verify one binary)
 
 ## Slice 4: Copilot Runtime Integration
 
 - [x] Define session-start loader behavior (local first, optional remote refresh)
 - [x] Implement stale-state marker and structured warning payload
-- [ ] Implement operation-risk gating for high-risk actions
-- [ ] Define and implement manual override contract with audit fields
+- [x] Implement operation-risk gating for high-risk actions
+- [x] Define and implement manual override contract with audit fields
 - [x] Add integration test for stale refresh fallback path
 
 ## Slice 5: Governance and Evolution

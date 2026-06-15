@@ -1,6 +1,6 @@
 # agent-tools
 
-Fast native CLI tools for AI agent sessions. Single static Go binaries, no runtime dependencies, composable via Unix pipes.
+Fast native CLI tools for AI agent sessions. Single static Go binaries, zero runtime dependencies, composable via Unix pipes.
 
 ## Installation
 
