@@ -30,6 +30,30 @@ go test ./...
 go vet ./...
 ```
 
+## Registry
+
+Agent discovery metadata lives in a dense machine-readable registry.
+
+- Canonical source: `tools/registry.json`
+- Key legend: `tools/schema-legend.md`
+- Schema contract: `tools/registry.schema.json`
+- Copilot runtime overlay: `tools/overlays/copilot.json`
+
+Validation is enforced in CI via `.github/workflows/registry-ci.yml`.
+
+## Releases
+
+Releases are built from tags on main with `.github/workflows/release.yml`.
+
+- Build matrix: linux/amd64, linux/arm64, darwin/arm64
+- Artifact naming: `agent-tools_<tool>-<version>_<os>_<arch>`
+- Integrity outputs: `SHA256SUMS` and `release-manifest.json`
+
+## Planning
+
+- V1 milestones: `docs/V1-PLAN.md`
+- Execution checklist: `docs/IMPLEMENTATION-CHECKLIST.md`
+
 ## patch-verify
 
 Safe literal replacement tool for agent-driven edits.

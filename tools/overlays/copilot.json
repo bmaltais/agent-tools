@@ -1,0 +1,39 @@
+{
+  "rt": "copilot",
+  "sm": 1,
+  "m": {
+    "discovery": "registry_first",
+    "verbosity": "dense",
+    "approval": "tool_risk_based",
+    "refresh": "local_first_optional_remote"
+  },
+  "t": {
+    "patch-verify": {
+      "pick_when": [
+        "literal_replace_requested",
+        "safe_no_silent_noop_required"
+      ],
+      "avoid_when": [
+        "regex_replace_requested",
+        "multi_file_batch_edit_requested"
+      ],
+      "risk": "low"
+    },
+    "gh-merge-wait": {
+      "pick_when": ["pr_merge_with_poll_or_retry_requested"],
+      "risk": "high"
+    },
+    "gh-action-version": {
+      "pick_when": ["action_version_resolution_requested"],
+      "risk": "low"
+    },
+    "git-pr-branch": {
+      "pick_when": ["branch_lifecycle_requested"],
+      "risk": "high"
+    },
+    "issue-ship": {
+      "pick_when": ["end_to_end_issue_shipping_requested"],
+      "risk": "high"
+    }
+  }
+}

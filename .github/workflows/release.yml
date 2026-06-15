@@ -1,0 +1,136 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  verify-tag-base:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag commit is on main
+        run: |
+          git fetch origin main --depth=1
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+  build:
+    needs: verify-tag-base
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build release binaries
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME}"
+          mkdir -p dist
+          for cmd_dir in cmd/*; do
+            tool="$(basename "$cmd_dir")"
+            out="dist/agent-tools_${tool}-${version}_${GOOS}_${GOARCH}"
+            CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o "$out" "./cmd/$tool"
+          done
+
+      - name: Upload matrix artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bins-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  package-release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all matrix artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums and release manifest
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum agent-tools_* > SHA256SUMS)
+
+          python - <<'PY'
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+          import os
+
+          dist = Path('dist')
+          reg = json.loads(Path('tools/registry.json').read_text())
+          schema_major = reg['sm']
+          registry_hash = hashlib.sha256(Path('tools/registry.json').read_bytes()).hexdigest()
+
+          entries = []
+          pat = re.compile(r'^agent-tools_(?P<tool>[a-z0-9-]+)-(?P<ver>v[0-9]+\.[0-9]+\.[0-9]+)_(?P<os>[a-z0-9]+)_(?P<arch>[a-z0-9_]+)$')
+
+          for p in sorted(dist.glob('agent-tools_*')):
+            m = pat.match(p.name)
+            if not m:
+              raise SystemExit(f'unexpected artifact name: {p.name}')
+            sha = hashlib.sha256(p.read_bytes()).hexdigest()
+            entries.append({
+              'name': p.name,
+              'tool': m.group('tool'),
+              'version': m.group('ver'),
+              'os': m.group('os'),
+              'arch': m.group('arch'),
+              'sha256': sha,
+              'schema_major': schema_major,
+              'registry_sha256': registry_hash,
+            })
+
+          manifest = {
+            'release_tag': os.environ['RELEASE_TAG'],
+            'schema_major': schema_major,
+            'registry_sha256': registry_hash,
+            'artifacts': entries,
+          }
+
+          Path('dist/release-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          PY
+
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/agent-tools_*
+            dist/SHA256SUMS
+            dist/release-manifest.json

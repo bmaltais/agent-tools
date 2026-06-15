@@ -1,0 +1,96 @@
+{
+  "sv": "1.0.0",
+  "sm": 1,
+  "ts": "2026-06-15",
+  "t": [
+    {
+      "id": "patch-verify",
+      "bin": "patch-verify",
+      "st": "ga",
+      "in": "literal_replace_safe_diff",
+      "cmd": "patch-verify [--all] [--dry-run] <file|-> <old> <new>",
+      "a": [
+        { "k": "file", "r": true, "t": "path|-", "d": "target file or stdin marker" },
+        { "k": "old", "r": true, "t": "str", "d": "literal search token, non-empty" },
+        { "k": "new", "r": true, "t": "str", "d": "literal replacement token" },
+        { "k": "all", "r": false, "t": "flag", "d": "replace all matches" },
+        { "k": "dry-run", "r": false, "t": "flag", "d": "emit diff, skip write" }
+      ],
+      "o": ["unified_diff_stdout", "patched_stdout_when_stdin"],
+      "p": ["file_readable_or_stdin", "old_non_empty"],
+      "s": ["writes_file_unless_dry_run_or_stdin"],
+      "f": ["not_found", "ambiguous_without_all", "io_error", "usage_error"],
+      "x": [
+        "patch-verify release.yml 'actions/checkout@v4' 'actions/checkout@v6'",
+        "patch-verify --dry-run file.txt old new",
+        "cat in.txt | patch-verify - old new"
+      ]
+    },
+    {
+      "id": "gh-merge-wait",
+      "bin": "gh-merge-wait",
+      "st": "plan",
+      "in": "squash_merge_with_retry_poll",
+      "cmd": "gh-merge-wait <owner/repo> <pr-number> [--timeout 60s]",
+      "a": [
+        { "k": "repo", "r": true, "t": "owner/repo", "d": "target repository" },
+        { "k": "pr", "r": true, "t": "int", "d": "pull request number" },
+        { "k": "timeout", "r": false, "t": "duration", "d": "max wait" }
+      ],
+      "o": ["merge_state"],
+      "p": ["gh_auth", "repo_access"],
+      "s": ["merges_pull_request"],
+      "f": ["api_error", "timeout", "auth_error"],
+      "x": ["gh-merge-wait bmaltais/agent-tools 6 --timeout 90s"]
+    },
+    {
+      "id": "gh-action-version",
+      "bin": "gh-action-version",
+      "st": "plan",
+      "in": "resolve_latest_action_tag_by_runtime",
+      "cmd": "gh-action-version <runtime> <owner/action> [<owner/action>...]",
+      "a": [
+        { "k": "runtime", "r": true, "t": "token", "d": "target runtime eg node24" },
+        { "k": "actions", "r": true, "t": "list", "d": "one or more owner/action refs" }
+      ],
+      "o": ["action_version_map"],
+      "p": ["network_access"],
+      "s": ["none"],
+      "f": ["not_found", "api_error", "rate_limit"],
+      "x": ["gh-action-version node24 actions/checkout actions/setup-go"]
+    },
+    {
+      "id": "git-pr-branch",
+      "bin": "git-pr-branch",
+      "st": "plan",
+      "in": "open_close_pr_branch_lifecycle",
+      "cmd": "git-pr-branch open <branch> | git-pr-branch close <branch>",
+      "a": [
+        { "k": "mode", "r": true, "t": "open|close", "d": "lifecycle action" },
+        { "k": "branch", "r": true, "t": "str", "d": "branch name" }
+      ],
+      "o": ["branch_state"],
+      "p": ["git_repo", "remote_origin"],
+      "s": ["creates_or_deletes_branches"],
+      "f": ["git_error", "branch_missing", "permission_error"],
+      "x": ["git-pr-branch open feat/my-change", "git-pr-branch close feat/my-change"]
+    },
+    {
+      "id": "issue-ship",
+      "bin": "issue-ship",
+      "st": "plan",
+      "in": "issue_to_pr_to_merge_pipeline",
+      "cmd": "issue-ship <owner/repo> <issue-number> [--method squash]",
+      "a": [
+        { "k": "repo", "r": true, "t": "owner/repo", "d": "target repository" },
+        { "k": "issue", "r": true, "t": "int", "d": "issue number" },
+        { "k": "method", "r": false, "t": "token", "d": "merge method" }
+      ],
+      "o": ["pipeline_state"],
+      "p": ["gh_auth", "repo_access"],
+      "s": ["creates_branches_pr_and_merge"],
+      "f": ["state_conflict", "api_error", "auth_error"],
+      "x": ["issue-ship bmaltais/agent-tools 12 --method squash"]
+    }
+  ]
+}
