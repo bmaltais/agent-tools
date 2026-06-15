@@ -165,3 +165,21 @@ jobs:
           set -euo pipefail
           chmod +x "smoke/${SMOKE_BINARY}"
           echo "hello smoke" | "smoke/${SMOKE_BINARY}" - "hello" "goodbye"
+
+      - name: Checkout (for install.sh)
+        uses: actions/checkout@v4
+
+      - name: Run install.sh
+        env:
+          AGENT_TOOLS_RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          AGENT_TOOLS_BIN_DIR: ${{ runner.temp }}/agent-tools-bin
+        run: |
+          set -euo pipefail
+          bash install.sh
+
+      - name: Verify installed binaries run
+        env:
+          AGENT_TOOLS_BIN_DIR: ${{ runner.temp }}/agent-tools-bin
+        run: |
+          set -euo pipefail
+          echo "hello install" | "${AGENT_TOOLS_BIN_DIR}/patch-verify" - "hello" "goodbye"
