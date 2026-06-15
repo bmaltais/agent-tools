@@ -29,13 +29,14 @@
     {
       "id": "gh-merge-wait",
       "bin": "gh-merge-wait",
-      "st": "plan",
+      "st": "ga",
       "in": "squash_merge_with_retry_poll",
-      "cmd": "gh-merge-wait <owner/repo> <pr-number> [--timeout 60s]",
+      "cmd": "gh-merge-wait [--timeout 60s] [--method squash|merge|rebase] <owner/repo> <pr-number>",
       "a": [
         { "k": "repo", "r": true, "t": "owner/repo", "d": "target repository" },
         { "k": "pr", "r": true, "t": "int", "d": "pull request number" },
-        { "k": "timeout", "r": false, "t": "duration", "d": "max wait" }
+        { "k": "timeout", "r": false, "t": "duration", "d": "max wait (default 60s)" },
+        { "k": "method", "r": false, "t": "squash|merge|rebase", "d": "merge method (default squash)" }
       ],
       "o": ["merge_state"],
       "p": ["gh_auth", "repo_access"],

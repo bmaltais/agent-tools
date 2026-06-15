@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/bmaltais/agent-tools/main/install.s
 
 | Tool | Status | Purpose |
 |------|--------|---------|
-| [`gh-merge-wait`](./cmd/gh-merge-wait/) | planned | Squash-merge a PR with automatic retry/poll — no manual polling loops |
+| [`gh-merge-wait`](./cmd/gh-merge-wait/) | implemented | Squash-merge a PR and poll until merged, with automatic 502 retry and REST fallback |
 | [`gh-action-version`](./cmd/gh-action-version/) | planned | Look up the latest Node.js-24-compatible version of GitHub Actions |
 | [`git-pr-branch`](./cmd/git-pr-branch/) | planned | Open/close PR branches against main with one command |
 | [`patch-verify`](./cmd/patch-verify/) | implemented | Apply a safe literal string replacement and print a unified diff |
