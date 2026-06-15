@@ -2,6 +2,16 @@
 
 Fast native CLI tools for AI agent sessions. Single static Go binaries, no runtime dependencies, composable via Unix pipes.
 
+## Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bmaltais/agent-tools/main/install.sh | bash
+```
+
+- Installs to `~/.local/bin` — make sure that directory is on your `$PATH`
+- Only **GA-status** tools are installed; tools in `plan` or other pre-release states are skipped
+- Override the install directory: `AGENT_TOOLS_BIN_DIR=/usr/local/bin bash install.sh`
+
 ## Tools
 
 | Tool | Status | Purpose |
@@ -12,7 +22,7 @@ Fast native CLI tools for AI agent sessions. Single static Go binaries, no runti
 | [`patch-verify`](./cmd/patch-verify/) | implemented | Apply a safe literal string replacement and print a unified diff |
 | [`issue-ship`](./cmd/issue-ship/) | implemented | Drive the full branch → PR → merge → cleanup pipeline for a GitHub issue |
 
-## Install
+## Install from source
 
 ```bash
 go install github.com/bmaltais/agent-tools/cmd/gh-merge-wait@latest
