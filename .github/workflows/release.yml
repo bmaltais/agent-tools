@@ -134,3 +134,34 @@ jobs:
             dist/agent-tools_*
             dist/SHA256SUMS
             dist/release-manifest.json
+
+  smoke-test:
+    needs: package-release
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+      SMOKE_BINARY: agent-tools_patch-verify-${{ github.ref_name }}_linux_amd64
+    steps:
+      - name: Download patch-verify binary and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir smoke
+          gh release download "${RELEASE_TAG}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${SMOKE_BINARY}" \
+            --pattern "SHA256SUMS" \
+            --dir smoke
+
+      - name: Verify SHA256 checksum
+        run: |
+          set -euo pipefail
+          cd smoke
+          grep "^[a-f0-9]\{64\}  ${SMOKE_BINARY}$" SHA256SUMS | sha256sum --check
+
+      - name: Execute binary smoke run
+        run: |
+          set -euo pipefail
+          chmod +x "smoke/${SMOKE_BINARY}"
+          echo "hello smoke" | "smoke/${SMOKE_BINARY}" - "hello" "goodbye"
