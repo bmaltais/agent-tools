@@ -21,6 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/bmaltais/agent-tools/main/install.s
 | [`git-pr-branch`](./cmd/git-pr-branch/) | planned | Open/close PR branches against main with one command |
 | [`patch-verify`](./cmd/patch-verify/) | implemented | Apply a safe literal string replacement and print a unified diff |
 | [`issue-ship`](./cmd/issue-ship/) | implemented | Drive the full branch → PR → merge → cleanup pipeline for a GitHub issue |
+| [`gh-triage-apply`](./cmd/gh-triage-apply/) | implemented | Apply labels and post a triage comment to a GitHub issue in one command |
 
 ## Install from source
 
@@ -30,6 +31,7 @@ go install github.com/bmaltais/agent-tools/cmd/gh-action-version@latest
 go install github.com/bmaltais/agent-tools/cmd/git-pr-branch@latest
 go install github.com/bmaltais/agent-tools/cmd/patch-verify@latest
 go install github.com/bmaltais/agent-tools/cmd/issue-ship@latest
+go install github.com/bmaltais/agent-tools/cmd/gh-triage-apply@latest
 ```
 
 ## Build
@@ -63,6 +65,24 @@ Releases are built from tags on main with `.github/workflows/release.yml`.
 
 - V1 milestones: `docs/V1-PLAN.md`
 - Execution checklist: `docs/IMPLEMENTATION-CHECKLIST.md`
+
+## gh-triage-apply
+
+Apply a label set and post a triage comment to a GitHub issue in a single command.
+
+Usage:
+
+```bash
+gh-triage-apply [--dry-run] --labels <label,...> (--comment <text> | --comment-file <path|->) <owner/repo> <issue-number>
+```
+
+Behavior:
+
+- Applies labels via `gh issue edit --add-label` then posts the comment via `gh issue comment`, sequentially
+- `--comment` provides the body inline; `--comment-file <path>` reads from a file; `--comment-file -` reads from stdin
+- `--dry-run` prints what would be done without calling `gh`
+- Exits non-zero if either the label or comment step fails, including the `gh` error output
+- Authenticated via `gh auth` / `GITHUB_TOKEN` — no extra credential setup
 
 ## issue-ship
 
