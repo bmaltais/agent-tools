@@ -94,6 +94,41 @@ func TestLoadSessionRemoteFailureSetsStale(t *testing.T) {
 	}
 }
 
+// TestLoadSessionRejectsUnsupportedSchemaMajor verifies the adapter
+// compatibility contract: if the overlay declares a different schema major than
+// the registry, the loader must fail fast rather than returning a stale or
+// partially-loaded session.
+func TestLoadSessionRejectsUnsupportedSchemaMajor(t *testing.T) {
+	root := t.TempDir()
+	// Registry is at sm=2; overlay is still at sm=1 — incompatible adapter.
+	mustWriteFile(t, filepath.Join(root, "tools", "registry.json"), `{"sv":"2.0.0","sm":2,"ts":"2026-06-15","t":[{"id":"patch-verify","bin":"patch-verify","st":"ga","in":"x","cmd":"c","a":[],"o":[],"p":[],"s":[],"f":[],"x":[]}]}`)
+	mustWriteFile(t, filepath.Join(root, "tools", "overlays", "copilot.json"), `{"rt":"copilot","sm":1,"m":{"discovery":"registry_first"},"t":{"patch-verify":{"risk":"low"}}}`)
+
+	_, err := LoadSession(context.Background(), LoadOptions{RootDir: root, Runtime: "copilot"})
+	if err == nil {
+		t.Fatal("expected error when registry sm != overlay sm, got nil")
+	}
+}
+
+// TestLoadSessionAcceptsSupportedSchemaMajor is the positive counterpart:
+// when registry sm and overlay sm agree, the session loads without error.
+func TestLoadSessionAcceptsSupportedSchemaMajor(t *testing.T) {
+	root := t.TempDir()
+	mustWriteFile(t, filepath.Join(root, "tools", "registry.json"), `{"sv":"1.0.0","sm":1,"ts":"2026-06-15","t":[{"id":"patch-verify","bin":"patch-verify","st":"ga","in":"x","cmd":"c","a":[],"o":[],"p":[],"s":[],"f":[],"x":[]}]}`)
+	mustWriteFile(t, filepath.Join(root, "tools", "overlays", "copilot.json"), `{"rt":"copilot","sm":1,"m":{"discovery":"registry_first"},"t":{"patch-verify":{"risk":"low"}}}`)
+
+	state, err := LoadSession(context.Background(), LoadOptions{RootDir: root, Runtime: "copilot"})
+	if err != nil {
+		t.Fatalf("expected no error when sm values agree, got: %v", err)
+	}
+	if state.Stale {
+		t.Fatal("expected fresh state when sm values agree")
+	}
+	if state.Registry.SM != state.Overlay.SchemaMajor {
+		t.Fatalf("sm mismatch in loaded state: registry=%d overlay=%d", state.Registry.SM, state.Overlay.SchemaMajor)
+	}
+}
+
 func writeLocalFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
