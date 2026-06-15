@@ -34,6 +34,10 @@
     "issue-ship": {
       "pick_when": ["end_to_end_issue_shipping_requested"],
       "risk": "high"
+    },
+    "gh-triage-apply": {
+      "pick_when": ["issue_label_and_comment_applied_together", "batch_triage_apply_requested"],
+      "risk": "low"
     }
   }
 }

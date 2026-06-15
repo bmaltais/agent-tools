@@ -1,7 +1,9 @@
-// gh-triage-apply applies a label set and posts a comment to a GitHub issue in a
-// single command, replacing the two-call sequence of gh issue edit + gh issue comment.
+// gh-triage-apply applies a label set and posts a comment to one or more GitHub
+// issues in a single command, replacing the two-call sequence of gh issue edit +
+// gh issue comment. Multiple issue numbers are processed sequentially; all errors
+// are collected and reported — execution is not stopped on the first failure.
 //
-// Usage: gh-triage-apply <owner/repo> <issue-number> --labels <label,...> (--comment <text> | --comment-file <path|->)
+// Usage: gh-triage-apply [--dry-run] --labels <label,...> (--comment <text> | --comment-file <path|->) <owner/repo> <issue-number> [<issue-number>...]
 package main
 
 import (
@@ -33,16 +35,22 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	positional := fs.Args()
-	if len(positional) != 2 {
-		fmt.Fprintln(stderr, "usage: gh-triage-apply <owner/repo> <issue-number> --labels <label,...> (--comment <text> | --comment-file <path|->)")
+	if len(positional) < 2 {
+		fmt.Fprintln(stderr, "usage: gh-triage-apply [--dry-run] --labels <label,...> (--comment <text> | --comment-file <path|->) <owner/repo> <issue-number> [<issue-number>...]")
 		return 2
 	}
 
 	ownerRepo := positional[0]
-	issueNum, err := strconv.Atoi(positional[1])
-	if err != nil || issueNum < 1 {
-		fmt.Fprintf(stderr, "gh-triage-apply: invalid issue number %q\n", positional[1])
-		return 2
+
+	// Parse and validate all issue numbers up front so we fail fast on bad input.
+	issueNums := make([]int, 0, len(positional)-1)
+	for _, raw := range positional[1:] {
+		n, err := strconv.Atoi(raw)
+		if err != nil || n < 1 {
+			fmt.Fprintf(stderr, "gh-triage-apply: invalid issue number %q\n", raw)
+			return 2
+		}
+		issueNums = append(issueNums, n)
 	}
 
 	if strings.TrimSpace(*labels) == "" {
@@ -59,7 +67,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 2
 	}
 
-	// Read comment body.
+	// Read comment body once — reused for all issues.
 	body, err := readCommentBody(*comment, *commentFile, stdin)
 	if err != nil {
 		fmt.Fprintf(stderr, "gh-triage-apply: %v\n", err)
@@ -71,34 +79,43 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	if *dryRun {
-		fmt.Fprintf(stdout, "[dry-run] gh issue edit %d --repo %s --add-label %q\n", issueNum, ownerRepo, *labels)
-		fmt.Fprintf(stdout, "[dry-run] gh issue comment %d --repo %s --body %q\n", issueNum, ownerRepo, body)
+		for _, n := range issueNums {
+			fmt.Fprintf(stdout, "[dry-run] gh issue edit %d --repo %s --add-label %q\n", n, ownerRepo, *labels)
+			fmt.Fprintf(stdout, "[dry-run] gh issue comment %d --repo %s --body %q\n", n, ownerRepo, body)
+		}
 		return 0
 	}
 
-	// Resolve gh binary.
+	// Resolve gh binary once.
 	ghBin, err := safeexec.LookPath("gh")
 	if err != nil {
 		fmt.Fprintln(stderr, "gh-triage-apply: gh CLI not found in PATH")
 		return 1
 	}
 
-	// Step 1: apply labels.
-	if err := ghExec(ghBin, stdout, stderr, "issue", "edit",
-		strconv.Itoa(issueNum), "--repo", ownerRepo, "--add-label", *labels,
-	); err != nil {
-		fmt.Fprintf(stderr, "gh-triage-apply: label step failed: %v\n", err)
-		return 1
+	// Process all issues sequentially; collect errors (fail-aggregate).
+	var errs []string
+	for _, n := range issueNums {
+		numStr := strconv.Itoa(n)
+		if err := ghExec(ghBin, stdout, stderr, "issue", "edit",
+			numStr, "--repo", ownerRepo, "--add-label", *labels,
+		); err != nil {
+			errs = append(errs, fmt.Sprintf("issue %d: label step failed: %v", n, err))
+			continue
+		}
+		if err := ghExec(ghBin, stdout, stderr, "issue", "comment",
+			numStr, "--repo", ownerRepo, "--body", body,
+		); err != nil {
+			errs = append(errs, fmt.Sprintf("issue %d: comment step failed: %v", n, err))
+		}
 	}
 
-	// Step 2: post comment.
-	if err := ghExec(ghBin, stdout, stderr, "issue", "comment",
-		strconv.Itoa(issueNum), "--repo", ownerRepo, "--body", body,
-	); err != nil {
-		fmt.Fprintf(stderr, "gh-triage-apply: comment step failed: %v\n", err)
+	if len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Fprintf(stderr, "gh-triage-apply: %s\n", e)
+		}
 		return 1
 	}
-
 	return 0
 }
 
