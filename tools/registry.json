@@ -47,23 +47,24 @@
     {
       "id": "gh-action-version",
       "bin": "gh-action-version",
-      "st": "plan",
+      "st": "ga",
       "in": "resolve_latest_action_tag_by_runtime",
-      "cmd": "gh-action-version <runtime> <owner/action> [<owner/action>...]",
+      "cmd": "gh-action-version [--output yaml] <runtime> <owner/action> [<owner/action>...]",
       "a": [
         { "k": "runtime", "r": true, "t": "token", "d": "target runtime eg node24" },
-        { "k": "actions", "r": true, "t": "list", "d": "one or more owner/action refs" }
+        { "k": "actions", "r": true, "t": "list", "d": "one or more owner/action refs" },
+        { "k": "output", "r": false, "t": "text|yaml", "d": "output format (default text)" }
       ],
       "o": ["action_version_map"],
-      "p": ["network_access"],
+      "p": ["gh_auth", "network_access"],
       "s": ["none"],
       "f": ["not_found", "api_error", "rate_limit"],
-      "x": ["gh-action-version node24 actions/checkout actions/setup-go"]
+      "x": ["gh-action-version node24 actions/checkout actions/setup-go", "gh-action-version --output yaml node24 actions/checkout"]
     },
     {
       "id": "git-pr-branch",
       "bin": "git-pr-branch",
-      "st": "plan",
+      "st": "ga",
       "in": "open_close_pr_branch_lifecycle",
       "cmd": "git-pr-branch open <branch> | git-pr-branch close <branch>",
       "a": [
@@ -75,6 +76,22 @@
       "s": ["creates_or_deletes_branches"],
       "f": ["git_error", "branch_missing", "permission_error"],
       "x": ["git-pr-branch open feat/my-change", "git-pr-branch close feat/my-change"]
+    },
+    {
+      "id": "gh-pr-comments",
+      "bin": "gh-pr-comments",
+      "st": "ga",
+      "in": "fetch_unified_pr_comments",
+      "cmd": "gh-pr-comments <owner/repo> <pr-number>",
+      "a": [
+        { "k": "repo", "r": true, "t": "owner/repo", "d": "target repository" },
+        { "k": "pr", "r": true, "t": "int", "d": "pull request number" }
+      ],
+      "o": ["unified_comment_array"],
+      "p": ["gh_auth", "repo_access"],
+      "s": ["none"],
+      "f": ["api_error", "auth_error", "usage_error"],
+      "x": ["gh-pr-comments bmaltais/agent-tools 22"]
     },
     {
       "id": "issue-ship",

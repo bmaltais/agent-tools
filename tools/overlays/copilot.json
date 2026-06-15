@@ -20,23 +20,49 @@
       "risk": "low"
     },
     "gh-merge-wait": {
-      "pick_when": ["pr_merge_with_poll_or_retry_requested"],
+      "pick_when": [
+        "pr_merge_with_poll_or_retry_requested",
+        "pr_squash_merge_requested",
+        "merging_a_pull_request",
+        "address_and_merge_phase6"
+      ],
       "risk": "high"
     },
     "gh-action-version": {
-      "pick_when": ["action_version_resolution_requested"],
+      "pick_when": [
+        "action_version_resolution_requested",
+        "looking_up_latest_github_action_version",
+        "updating_action_versions_in_workflow"
+      ],
       "risk": "low"
     },
     "git-pr-branch": {
-      "pick_when": ["branch_lifecycle_requested"],
+      "pick_when": [
+        "branch_lifecycle_requested",
+        "creating_feature_branch_from_main",
+        "cleaning_up_after_pr_merge",
+        "address_and_merge_phase7"
+      ],
       "risk": "high"
     },
     "issue-ship": {
-      "pick_when": ["end_to_end_issue_shipping_requested"],
+      "pick_when": [
+        "end_to_end_issue_shipping_requested",
+        "merge_and_cleanup_after_review",
+        "post_review_merge_requested"
+      ],
       "risk": "high"
     },
     "gh-triage-apply": {
       "pick_when": ["issue_label_and_comment_applied_together", "batch_triage_apply_requested"],
+      "risk": "low"
+    },
+    "gh-pr-comments": {
+      "pick_when": [
+        "fetching_pr_review_comments",
+        "reading_pr_feedback_before_addressing",
+        "address_and_merge_phase2"
+      ],
       "risk": "low"
     }
   }
