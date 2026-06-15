@@ -91,6 +91,29 @@
       "s": ["creates_branches_pr_and_merge"],
       "f": ["state_conflict", "api_error", "auth_error"],
       "x": ["issue-ship bmaltais/agent-tools 12 --method squash"]
+    },
+    {
+      "id": "gh-triage-apply",
+      "bin": "gh-triage-apply",
+      "st": "ga",
+      "in": "apply_triage_label_and_comment",
+      "cmd": "gh-triage-apply [--dry-run] --labels <label,...> (--comment <text> | --comment-file <path|->) <owner/repo> <issue-number> [<issue-number>...]",
+      "a": [
+        { "k": "repo", "r": true, "t": "owner/repo", "d": "target repository" },
+        { "k": "issues", "r": true, "t": "int+", "d": "one or more issue numbers" },
+        { "k": "labels", "r": true, "t": "str", "d": "comma-separated label names" },
+        { "k": "comment", "r": false, "t": "str", "d": "inline comment body" },
+        { "k": "comment-file", "r": false, "t": "path|-", "d": "file or stdin for comment body" },
+        { "k": "dry-run", "r": false, "t": "flag", "d": "print actions without calling gh" }
+      ],
+      "o": ["label_applied", "comment_posted"],
+      "p": ["gh_auth", "repo_access"],
+      "s": ["adds_labels", "posts_comment"],
+      "f": ["gh_not_found", "api_error", "auth_error", "usage_error"],
+      "x": [
+        "gh-triage-apply --labels 'enhancement,ready-for-agent' --comment 'triage note' owner/repo 42",
+        "gh-triage-apply --labels bug --comment-file brief.md owner/repo 1 2 3"
+      ]
     }
   ]
 }
