@@ -17,11 +17,12 @@ curl -fsSL https://raw.githubusercontent.com/bmaltais/agent-tools/main/install.s
 | Tool | Status | Purpose |
 |------|--------|---------|
 | [`gh-merge-wait`](./cmd/gh-merge-wait/) | implemented | Squash-merge a PR and poll until merged, with automatic 502 retry and REST fallback |
-| [`gh-action-version`](./cmd/gh-action-version/) | planned | Look up the latest Node.js-24-compatible version of GitHub Actions |
-| [`git-pr-branch`](./cmd/git-pr-branch/) | planned | Open/close PR branches against main with one command |
+| [`gh-action-version`](./cmd/gh-action-version/) | implemented | Look up the latest release of GitHub Actions matching a given runtime (e.g. node24) |
+| [`git-pr-branch`](./cmd/git-pr-branch/) | implemented | Open/close PR branch lifecycle as two single commands |
 | [`patch-verify`](./cmd/patch-verify/) | implemented | Apply a safe literal string replacement and print a unified diff |
 | [`issue-ship`](./cmd/issue-ship/) | implemented | Drive the full branch → PR → merge → cleanup pipeline for a GitHub issue |
 | [`gh-triage-apply`](./cmd/gh-triage-apply/) | implemented | Apply labels and post a triage comment to one or more GitHub issues in one command |
+| [`gh-pr-comments`](./cmd/gh-pr-comments/) | implemented | Fetch inline and conversation PR comments as a unified JSON array |
 
 ## Install from source
 
@@ -32,6 +33,7 @@ go install github.com/bmaltais/agent-tools/cmd/git-pr-branch@latest
 go install github.com/bmaltais/agent-tools/cmd/patch-verify@latest
 go install github.com/bmaltais/agent-tools/cmd/issue-ship@latest
 go install github.com/bmaltais/agent-tools/cmd/gh-triage-apply@latest
+go install github.com/bmaltais/agent-tools/cmd/gh-pr-comments@latest
 ```
 
 ## Build
