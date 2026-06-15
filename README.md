@@ -10,7 +10,7 @@ Fast native CLI tools for AI agent sessions. Single static Go binaries, no runti
 | [`gh-action-version`](./cmd/gh-action-version/) | planned | Look up the latest Node.js-24-compatible version of GitHub Actions |
 | [`git-pr-branch`](./cmd/git-pr-branch/) | planned | Open/close PR branches against main with one command |
 | [`patch-verify`](./cmd/patch-verify/) | implemented | Apply a safe literal string replacement and print a unified diff |
-| [`issue-ship`](./cmd/issue-ship/) | planned | Drive the full triage → branch → PR → merge → cleanup pipeline |
+| [`issue-ship`](./cmd/issue-ship/) | implemented | Drive the full branch → PR → merge → cleanup pipeline for a GitHub issue |
 
 ## Install
 
@@ -53,6 +53,26 @@ Releases are built from tags on main with `.github/workflows/release.yml`.
 
 - V1 milestones: `docs/V1-PLAN.md`
 - Execution checklist: `docs/IMPLEMENTATION-CHECKLIST.md`
+
+## issue-ship
+
+Idempotent pipeline driver for a GitHub issue: branch → PR → merge → cleanup.
+Re-running from any stage picks up where it left off.
+
+Usage:
+
+```bash
+issue-ship [--dry-run] [--method squash|rebase|merge] [--from-stage branch|pr|merge|cleanup] <owner/repo> <issue-number>
+```
+
+Behavior:
+
+- Detects the current pipeline stage automatically (branch, PR open, PR merged, cleanup) and advances from there
+- Branch name: `feat/issue-{N}-{slug}` where slug is the first 5 words of the issue title, kebab-cased
+- PR body includes `Closes #{N}` to auto-close the issue on merge
+- `--method` controls the merge strategy (default: `squash`)
+- `--dry-run` prints each stage action without executing any git or gh commands
+- `--from-stage` forces a restart from a named stage, useful for recovery
 
 ## patch-verify
 
