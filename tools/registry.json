@@ -78,7 +78,7 @@
     {
       "id": "issue-ship",
       "bin": "issue-ship",
-      "st": "plan",
+      "st": "ga",
       "in": "issue_to_pr_to_merge_pipeline",
       "cmd": "issue-ship <owner/repo> <issue-number> [--method squash]",
       "a": [
